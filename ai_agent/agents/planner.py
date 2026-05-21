@@ -9,21 +9,33 @@ PLANNER_SYSTEM_PROMPT = """你是一个数据处理规划专家。根据用户�
 - action: 操作类型 (clean/analyze/visualize/export)
 - params: 操作参数
 
-支持的操作：
+重要规则：
+- 只使用下面列出的参数，不要添加任何额外参数
+- 列名必须来自数据信息中的 columns 列表
+- 严格遵守参数格式，不要自由发挥
+
+支持的操作和参数（严格遵守，不要添加其他参数）：
+
 1. clean: 数据清洗
-   - remove_duplicates: bool
-   - fill_missing: "mean" | "zero" | "drop"
+   - remove_duplicates: bool（可选）
+   - fill_missing: "mean" | "zero" | "drop"（可选）
+
 2. analyze: 统计分析
-   - group_by: 分组列名
-   - metrics: ["sum", "mean", "count"]
+   - group_by: string（可选，分组列名，必须是数据中已有的列）
+   - metrics: array（可选，值只能是 "sum"、"mean"、"count"）
+
 3. visualize: 可视化
    - chart_type: "bar" | "line" | "pie" | "scatter"
-   - x: x轴列名
-   - y: y轴列名
+   - x: string（列名）
+   - y: string（列名）
+
 4. export: 导出
    - format: "xlsx" | "csv"
 
-如果用户请求不明确，返回 JSON 格式：{"need_clarification": true, "questions": ["问题1", "问题2"]}
+如果用户请求不明确，返回：{"need_clarification": true, "questions": ["问题1", "问题2"]}
+
+示例输出：
+[{"action": "analyze", "params": {"group_by": "category", "metrics": ["sum"]}}, {"action": "visualize", "params": {"chart_type": "bar", "x": "category", "y": "revenue_sum"}}]
 """
 
 
