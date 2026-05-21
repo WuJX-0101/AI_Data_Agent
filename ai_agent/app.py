@@ -11,9 +11,7 @@ st.title("AI 数据处理助手")
 with st.sidebar:
     st.header("设置")
     selected_model = st.selectbox("选择模型", [m["name"] for m in AVAILABLE_MODELS])
-    api_key = st.text_input("API Key", type="password")
     st.session_state["model"] = selected_model
-    st.session_state["api_key"] = api_key
 
 # 文件上传
 uploaded_file = st.file_uploader("上传数据文件", type=["xlsx", "csv", "json"])
