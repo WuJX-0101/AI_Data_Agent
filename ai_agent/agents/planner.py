@@ -34,5 +34,11 @@ def create_planner(llm):
             HumanMessage(content=f"用户请求: {user_request}\n数据信息: {data_info}")
         ]
         response = llm.invoke(messages)
-        return json.loads(response.content)
+        content = response.content.strip()
+        if not content:
+            raise ValueError("LLM 返回了空响应，请检查 API Key 和模型配置是否正确")
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError:
+            raise ValueError(f"LLM 返回了非 JSON 格式响应：{content[:200]}")
     return planner
