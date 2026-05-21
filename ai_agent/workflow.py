@@ -51,10 +51,6 @@ def create_workflow(llm):
     def execute_node(state: AgentState) -> AgentState:
         if not state["task_plan"]:
             return {**state, "status": "error", "error_message": "未生成有效的处理计划，请检查 LLM 配置是否正确"}
-        columns = list(state["data"].columns)
-        error = validate_plan(state["task_plan"], columns)
-        if error:
-            return {**state, "status": "error", "error_message": error}
         try:
             data = executor(state["data"], state["task_plan"])
             charts = visualizer(data, state["task_plan"])
