@@ -13,6 +13,7 @@ class AgentState(TypedDict):
     task_plan: list
     charts: list
     status: str
+    error_message: str
     clarification_needed: bool
     clarification_questions: list
 
@@ -83,6 +84,7 @@ def create_workflow(llm):
             "task_plan": [],
             "charts": [],
             "status": "started",
+            "error_message": "",
             "clarification_needed": False,
             "clarification_questions": []
         }
