@@ -34,7 +34,21 @@ def create_workflow(llm):
             }
         return {**state, "task_plan": result, "clarification_needed": False, "status": "planned"}
 
+    def validate_plan(plan: list, columns: list) -> str | None:
+        """校验计划中的列名是否存在于 DataFrame，返回错误信息或 None"""
+        for step in plan:
+            params = step.get("params", {})
+            for key in ("group_by", "x", "y"):
+                col = params.get(key)
+                if col and col not in columns:
+                    return f"列 '{col}' 不存在，可用列：{columns}"
+        return None
+
     def execute_node(state: AgentState) -> AgentState:
+        columns = list(state["data"].columns)
+        error = validate_plan(state["task_plan"], columns)
+        if error:
+            return {**state, "status": "error", "error_message": error}
         data = executor(state["data"], state["task_plan"])
         charts = visualizer(data, state["task_plan"])
         return {**state, "data": data, "charts": charts, "status": "completed"}
@@ -69,7 +83,8 @@ def create_workflow(llm):
             "data": result["data"],
             "charts": result["charts"],
             "status": result["status"],
-            "questions": result.get("clarification_questions", [])
+            "questions": result.get("clarification_questions", []),
+            "error_message": result.get("error_message", "")
         }
 
     return run

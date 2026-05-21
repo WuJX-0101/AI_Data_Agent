@@ -66,6 +66,8 @@ if uploaded_file:
                         st.info("需要更多信息：")
                         for q in result["questions"]:
                             st.write(f"- {q}")
+                    elif result["status"] == "error":
+                        st.error(result.get("error_message", "执行出错"))
                     else:
                         st.success("处理完成！")
                         st.subheader("处理结果")
