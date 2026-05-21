@@ -14,6 +14,12 @@ def get_llm(model_name: str = None):
         return ChatOpenAI(model=model, api_key=os.getenv("OPENAI_API_KEY"))
     elif model.startswith("claude"):
         return ChatAnthropic(model=model, api_key=os.getenv("ANTHROPIC_API_KEY"))
+    elif model.startswith("deepseek"):
+        return ChatOpenAI(
+            model=model,
+            api_key=os.getenv("DEEPSEEK_API_KEY"),
+            base_url="https://api.deepseek.com/v1"
+        )
     else:
         raise ValueError(f"不支持的模型: {model}")
 
@@ -23,4 +29,6 @@ AVAILABLE_MODELS = [
     {"name": "gpt-4o-mini", "provider": "OpenAI"},
     {"name": "claude-sonnet-4-20250514", "provider": "Anthropic"},
     {"name": "claude-haiku-4-5-20251001", "provider": "Anthropic"},
+    {"name": "deepseek-v4-flash", "provider": "DeepSeek"},
+    {"name": "deepseek-v4-pro", "provider": "DeepSeek"},
 ]
