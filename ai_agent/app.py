@@ -1,9 +1,3 @@
-import sys
-from pathlib import Path
-
-# 确保项目根目录在 sys.path 中
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
 import streamlit as st
 import pandas as pd
 from ai_agent.config import get_llm, AVAILABLE_MODELS
