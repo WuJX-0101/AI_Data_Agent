@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from config import get_llm, AVAILABLE_MODELS
+from ai_agent.config import get_llm, AVAILABLE_MODELS
 from ai_agent.workflow import create_workflow
 
 
