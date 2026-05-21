@@ -24,15 +24,18 @@ def create_workflow(llm):
     visualizer = create_visualizer()
 
     def plan_node(state: AgentState) -> AgentState:
-        result = planner(state["user_request"], state["data_info"])
-        if isinstance(result, dict) and result.get("need_clarification"):
-            return {
-                **state,
-                "clarification_needed": True,
-                "clarification_questions": result["questions"],
-                "status": "awaiting_clarification"
-            }
-        return {**state, "task_plan": result, "clarification_needed": False, "status": "planned"}
+        try:
+            result = planner(state["user_request"], state["data_info"])
+            if isinstance(result, dict) and result.get("need_clarification"):
+                return {
+                    **state,
+                    "clarification_needed": True,
+                    "clarification_questions": result["questions"],
+                    "status": "awaiting_clarification"
+                }
+            return {**state, "task_plan": result, "clarification_needed": False, "status": "planned"}
+        except Exception as e:
+            return {**state, "status": "error", "error_message": f"规划出错：{str(e)}"}
 
     def validate_plan(plan: list, columns: list) -> str | None:
         """校验计划中的列名是否存在于 DataFrame，返回错误信息或 None"""
@@ -49,9 +52,12 @@ def create_workflow(llm):
         error = validate_plan(state["task_plan"], columns)
         if error:
             return {**state, "status": "error", "error_message": error}
-        data = executor(state["data"], state["task_plan"])
-        charts = visualizer(data, state["task_plan"])
-        return {**state, "data": data, "charts": charts, "status": "completed"}
+        try:
+            data = executor(state["data"], state["task_plan"])
+            charts = visualizer(data, state["task_plan"])
+            return {**state, "data": data, "charts": charts, "status": "completed"}
+        except Exception as e:
+            return {**state, "status": "error", "error_message": f"执行出错：{str(e)}"}
 
     def should_continue(state: AgentState) -> str:
         if state.get("clarification_needed"):
