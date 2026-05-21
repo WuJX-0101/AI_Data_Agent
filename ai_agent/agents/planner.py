@@ -1,4 +1,5 @@
 import json
+import re
 from langchain_core.messages import HumanMessage, SystemMessage
 
 
@@ -37,6 +38,9 @@ def create_planner(llm):
         content = response.content.strip()
         if not content:
             raise ValueError("LLM 返回了空响应，请检查 API Key 和模型配置是否正确")
+        # 去掉 markdown 代码块标记
+        content = re.sub(r"^```(?:json)?\s*", "", content)
+        content = re.sub(r"\s*```$", "", content)
         try:
             return json.loads(content)
         except json.JSONDecodeError:
