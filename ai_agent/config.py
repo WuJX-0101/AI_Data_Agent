@@ -1,9 +1,11 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 
-load_dotenv()
+# 从项目根目录的 .env 加载
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
 def get_llm(model_name: str = None):
