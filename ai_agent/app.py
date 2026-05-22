@@ -1,3 +1,4 @@
+import io
 import streamlit as st
 import pandas as pd
 from ai_agent.config import get_llm, AVAILABLE_MODELS
@@ -16,10 +17,54 @@ with st.sidebar:
 # 文件上传
 uploaded_file = st.file_uploader("上传数据文件", type=["xlsx", "csv", "json"])
 
+ENCODING_OPTIONS = {
+    "UTF-8 (BOM)": "utf-8-sig",
+    "UTF-8": "utf-8",
+    "GBK": "gbk",
+}
+
+
+def display_result(result, export=False, encoding="utf-8-sig", file_format="csv"):
+    """渲染处理结果"""
+    if result["status"] == "awaiting_clarification":
+        st.info("需要更多信息：")
+        for q in result["questions"]:
+            st.write(f"- {q}")
+    elif result["status"] == "error":
+        st.error(result.get("error_message", "执行出错"))
+    else:
+        st.success("处理完成！")
+        st.subheader("处理结果")
+        st.dataframe(result["data"])
+
+        if result["charts"]:
+            st.subheader("图表")
+            for chart in result["charts"]:
+                st.plotly_chart(chart)
+
+        if export:
+            buf = io.BytesIO()
+            if file_format == "xlsx":
+                with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+                    result["data"].to_excel(writer, index=False, sheet_name="Data")
+                st.download_button(
+                    "下载 XLSX", buf.getvalue(), "report.xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
+            else:
+                result["data"].to_csv(buf, index=False, encoding=encoding)
+                st.download_button("下载 CSV", buf.getvalue(), "report.csv", "text/csv")
+
+
 if uploaded_file:
     # 读取文件
     if uploaded_file.name.endswith(".csv"):
-        df = pd.read_csv(uploaded_file)
+        content = uploaded_file.read()
+        try:
+            text = content.decode("utf-8")
+        except UnicodeDecodeError:
+            text = content.decode("gbk")
+        df = pd.read_csv(io.StringIO(text))
     elif uploaded_file.name.endswith(".json"):
         df = pd.read_json(uploaded_file)
     else:
@@ -43,6 +88,20 @@ if uploaded_file:
     with col4:
         export = st.checkbox("导出报告")
 
+    if export:
+        col_fmt, col_enc = st.columns(2)
+        with col_fmt:
+            export_format = st.selectbox("下载格式", ["csv", "xlsx"], key="export_format")
+        if export_format == "csv":
+            with col_enc:
+                encoding_label = st.selectbox("编码格式", list(ENCODING_OPTIONS.keys()), key="csv_encoding")
+            export_encoding = ENCODING_OPTIONS[encoding_label]
+        else:
+            export_encoding = "utf-8-sig"
+    else:
+        export_encoding = "utf-8-sig"
+        export_format = "csv"
+
     # 自然语言输入
     user_request = st.text_area("描述您想做的操作", placeholder="例如：按类别汇总销售额，生成柱状图")
 
@@ -61,26 +120,9 @@ if uploaded_file:
                         "rows": len(df)
                     }
                     result = workflow(df, user_request, data_info)
-
-                    if result["status"] == "awaiting_clarification":
-                        st.info("需要更多信息：")
-                        for q in result["questions"]:
-                            st.write(f"- {q}")
-                    elif result["status"] == "error":
-                        st.error(result.get("error_message", "执行出错"))
-                    else:
-                        st.success("处理完成！")
-                        st.subheader("处理结果")
-                        st.dataframe(result["data"])
-
-                        if result["charts"]:
-                            st.subheader("图表")
-                            for chart in result["charts"]:
-                                st.plotly_chart(chart)
-
-                        # 下载按钮
-                        if export:
-                            csv = result["data"].to_csv(index=False)
-                            st.download_button("下载 CSV", csv, "report.csv", "text/csv")
+                    st.session_state["result"] = result
+                    display_result(result, export, export_encoding, export_format)
                 except Exception as e:
                     st.error(f"处理失败: {str(e)}")
+    elif "result" in st.session_state:
+        display_result(st.session_state["result"], export, export_encoding, export_format)
