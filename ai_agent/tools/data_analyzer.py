@@ -14,7 +14,7 @@ def analyze_data(
         agg_dict = {col: metrics for col in df.select_dtypes("number").columns}
         result = df.groupby(group_by).agg(agg_dict)
         result.columns = ["_".join(col) for col in result.columns]
-        return result
+        return result.reset_index()
     else:
         result = {}
         for metric in metrics:
