@@ -27,10 +27,11 @@ def get_llm(model_name: str = None):
 
 
 AVAILABLE_MODELS = [
+    {"name": "deepseek-v4-flash", "provider": "DeepSeek"},
+    {"name": "deepseek-v4-pro", "provider": "DeepSeek"},
     {"name": "gpt-4o", "provider": "OpenAI"},
     {"name": "gpt-4o-mini", "provider": "OpenAI"},
     {"name": "claude-sonnet-4-20250514", "provider": "Anthropic"},
     {"name": "claude-haiku-4-5-20251001", "provider": "Anthropic"},
-    {"name": "deepseek-v4-flash", "provider": "DeepSeek"},
-    {"name": "deepseek-v4-pro", "provider": "DeepSeek"},
+
 ]
